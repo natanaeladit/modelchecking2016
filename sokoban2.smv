@@ -1,0 +1,212 @@
+MODULE move(dir, man_x, man_y, max_screen_x, max_screen_y, screen)
+	VAR
+	DEFINE
+		man_old_x:= man_x;
+		man_old_y:= man_y;
+		man_next_x:=
+			case
+				dir = left		: man_x - 1;
+				dir = right		: man_x + 1;
+				TRUE			: man_x;
+			esac;
+		man_next_y:=
+			case
+				dir = top		: man_y - 1;
+				dir = bottom	: man_y + 1;
+				TRUE			: man_y;
+			esac;
+		man_next_next_x:=
+			case
+				dir = left		: man_x - 2;
+				dir = right		: man_x + 2;
+				TRUE			: man_x;
+			esac;
+		man_next_next_y:=
+			case
+				dir = top		: man_y - 2;
+				dir = bottom	: man_y + 2;
+				TRUE			: man_y;
+			esac;
+			
+		temp:= 
+			case 
+				(man_next_next_x >= max_screen_x) | (man_next_next_y >= max_screen_y)	: wall;
+				(man_next_next_x <= 0) | (man_next_next_y <= 0)							: wall;
+				TRUE																	: screen[man_next_next_x][man_next_next_y];
+			esac;
+		temp2:= 
+			case 
+				(man_next_next_x >= max_screen_x) | (man_next_next_y >= max_screen_y)	: wall;
+				(man_next_next_x <= 0) | (man_next_next_y <= 0)							: wall;
+				TRUE																	: screen[man_x][man_y];
+			esac;
+		
+		space_on_the_next_move:=
+			case 
+				(man_next_next_x >= max_screen_x) | (man_next_next_y >= max_screen_y)	: FALSE;
+				(man_next_next_x <= 0) | (man_next_next_y <= 0)							: FALSE;
+				TRUE																	:(screen[man_next_x][man_next_y] = space);
+			esac;
+		wall_on_the_next_move:=
+			case 
+				(man_next_next_x >= max_screen_x) | (man_next_next_y >= max_screen_y)	: FALSE;
+				(man_next_next_x <= 0) | (man_next_next_y <= 0)							: FALSE;
+				TRUE																	:(screen[man_next_x][man_next_y] = wall);
+			esac;
+		----------------------------------------------------------------------------
+		--Is there a block on the next move? If yes, calculate the block's next move
+		----------------------------------------------------------------------------
+		----------------------------------------------------------------------------
+		--@$_ there is a block on the next man's move, and a space next to the block
+		----------------------------------------------------------------------------
+		block_on_the_next_move:= (screen[man_next_x][man_next_y] = block);
+		block_next_x:=
+			case
+				!block_on_the_next_move					: man_next_x;
+				block_on_the_next_move & (dir = left)	: man_next_x - 1;
+				block_on_the_next_move & (dir = right)	: man_next_x + 1;
+				TRUE									: man_next_x;
+			esac;
+		block_next_y:=
+			case
+				!block_on_the_next_move					: man_next_y;
+				block_on_the_next_move & (dir = top)	: man_next_y - 1;
+				block_on_the_next_move & (dir = bottom)	: man_next_y + 1;
+				TRUE									: man_next_y;
+			esac;
+			
+		----------------------------------------------------------------------------------
+		--@$# there is a block on the next man's move, but a wall on the next to the block
+		--so both man and block can not move
+		----------------------------------------------------------------------------------
+		wall_on_the_next_block_move:=
+			case 
+				(man_next_next_x >= max_screen_x) | (man_next_next_y >= max_screen_y)	: FALSE;
+				(man_next_next_x <= 0) | (man_next_next_y <= 0)							: FALSE;
+				TRUE																	:(screen[man_next_next_x][man_next_next_y]=wall);
+			esac;
+		space_on_the_next_block_move:= 
+			case 
+				(man_next_next_x >= max_screen_x) | (man_next_next_y >= max_screen_y)	: FALSE;
+				(man_next_next_x <= 0) | (man_next_next_y <= 0)							: FALSE;
+				TRUE																	:(screen[man_next_next_x][man_next_next_y]=space);
+			esac;
+		emptygoal_on_the_next_block_move:= 
+			case 
+				(man_next_next_x >= max_screen_x) | (man_next_next_y >= max_screen_y)	: FALSE;
+				(man_next_next_x <= 0) | (man_next_next_y <= 0)							: FALSE;
+				 TRUE																	:(screen[man_next_next_x][man_next_next_y]=emptygoal);
+			esac;
+		
+		------------------------------------------------------------------
+		--validate the move
+		--man can move if there is a space in the next move OR
+		--there is a block with a space/emptygoal on the next block's move
+		------------------------------------------------------------------
+		valid_move:=
+			case
+				(man_next_next_x >= max_screen_x) | (man_next_next_y >= max_screen_y)						: FALSE;
+				(man_next_x >= max_screen_x) | (man_next_y >= max_screen_y)									: FALSE;
+				space_on_the_next_move																		: TRUE;
+				block_on_the_next_move & (space_on_the_next_block_move | emptygoal_on_the_next_block_move)	: TRUE;
+				TRUE																						: FALSE;
+			esac;
+		
+	ASSIGN
+		------------------------------------------------------------------
+		--update man's position
+		------------------------------------------------------------------
+		next(man_x):=
+			case
+				!valid_move							: man_x;
+				dir = left & valid_move				: man_x - 1;
+				dir = right & valid_move			: man_x + 1;
+				TRUE								: man_x;
+			esac;
+		next(man_y):=
+			case
+				!valid_move							: man_y;
+				dir = top	& valid_move			: man_y - 1;
+				dir = bottom & valid_move			: man_y + 1;
+				TRUE								: man_y;
+			esac;
+		---------------------------------
+		--update the screen (block's move)
+		---------------------------------
+		next(screen[man_next_next_x][man_next_next_y]):=
+			case 
+				valid_move & block_on_the_next_move & space_on_the_next_block_move	: screen[man_next_x][man_next_y];
+				TRUE																: screen[man_next_next_x][man_next_next_y];
+			esac;
+		next(screen[man_next_x][man_next_y]):=
+			case 
+				valid_move & block_on_the_next_move & space_on_the_next_block_move	: temp;
+				TRUE																: screen[man_next_x][man_next_y];
+			esac;
+		---------------------------------
+		--update the screen (man's move)
+		---------------------------------
+		next(screen[man_x][man_y]):=
+			case 
+				valid_move	: screen[man_old_x][man_old_y];
+				TRUE		: screen[man_x][man_y];
+			esac;
+		next(screen[man_old_x][man_old_y]):=
+			case 
+				valid_move	: temp;
+				TRUE		: screen[man_old_x][man_old_y];
+			esac;
+		
+MODULE main
+	VAR
+		--------------------------------------------------
+		-- x = 0 & y = 0 are on the top left of the screen
+		--------------------------------------------------
+		man_x		: 0..4;
+		man_y		: 0..5;
+		max_screen_x: 0..4;
+		max_screen_y: 0..5;
+		screen		: array 0..5 of array 0..4 of {space,man,emptygoal,wall,block};
+		direction	: {top,bottom,left,right};
+		playgame	: process move(direction, man_x, man_y, max_screen_x, max_screen_y, screen);
+	ASSIGN
+		init(man_x) := 1;
+		init(man_y) := 2;
+		init(max_screen_x) := 4;
+		init(max_screen_y) := 5;
+		
+		init(screen[0][0]) := wall;
+		init(screen[0][1]) := wall;
+		init(screen[0][2]) := wall;
+		init(screen[0][3]) := wall;
+		init(screen[0][4]) := wall;
+		
+		init(screen[1][0]) := wall;
+		init(screen[1][1]) := space;
+		init(screen[1][2]) := man;
+		init(screen[1][3]) := space;
+		init(screen[1][4]) := wall;
+		
+		init(screen[2][0]) := wall;
+		init(screen[2][1]) := space;
+		init(screen[2][2]) := space;
+		init(screen[2][3]) := space;
+		init(screen[2][4]) := wall;
+		
+		init(screen[3][0]) := wall;
+		init(screen[3][1]) := space;
+		init(screen[3][2]) := block;
+		init(screen[3][3]) := space;
+		init(screen[3][4]) := wall;
+		
+		init(screen[4][0]) := wall;
+		init(screen[4][1]) := space;
+		init(screen[4][2]) := space;
+		init(screen[4][3]) := emptygoal;
+		init(screen[4][4]) := wall;
+		
+		init(screen[5][0]) := wall;
+		init(screen[5][1]) := wall;
+		init(screen[5][2]) := wall;
+		init(screen[5][3]) := wall;
+		init(screen[5][4]) := wall;

@@ -1,0 +1,75 @@
+MODULE move(dir, man_x, man_y, screen)
+	VAR
+		man_old_x	: man_x;
+		man_old_y	: man_y;
+		temp		: {space,man,emptygoal,wall,block};
+	ASSIGN
+		-------------------------------
+		--update man's current position
+		-------------------------------
+		next(man_x):=
+			case
+				dir = left & (screen[man_x-1][man_y] = space)	: man_x-1;
+				dir = right & (screen[man_x+1][man_y] = space)	: man_x+1;
+				TRUE											: man_x;
+			esac;
+		next(man_y):=
+			case
+				dir = top	& (screen[man_x][man_y-1] = space)	: man_y-1;
+				dir = bottom & (screen[man_x][man_y+1] = space)	: man_y+1;
+			esac;
+		-------------------
+		--update the screen
+		-------------------
+		next(temp)							:= screen[man_x][man_y];
+		next(screen[man_x][man_y])			:= screen[man_old_x][man_old_y];
+		next(screen[man_old_x][man_old_y])	:= temp;
+		
+MODULE main
+	VAR
+		--------------------------------------------------
+		-- x = 0 & y = 0 are on the top left of the screen
+		--------------------------------------------------
+		man_x		: 0..4;
+		man_y		: 0..5;
+		screen		: array 0..5 of array 0..4 of {space,man,emptygoal,wall,block};
+		direction	: {top,bottom,left,right};
+	ASSIGN
+		init(man_x) := 1;
+		init(man_y) := 2;
+		
+		init(screen[0][0]) := wall;
+		init(screen[0][1]) := wall;
+		init(screen[0][2]) := wall;
+		init(screen[0][3]) := wall;
+		init(screen[0][4]) := wall;
+		
+		init(screen[1][0]) := wall;
+		init(screen[1][1]) := space;
+		init(screen[1][2]) := man;
+		init(screen[1][3]) := space;
+		init(screen[1][4]) := wall;
+		
+		init(screen[2][0]) := wall;
+		init(screen[2][1]) := space;
+		init(screen[2][2]) := space;
+		init(screen[2][3]) := space;
+		init(screen[2][4]) := wall;
+		
+		init(screen[3][0]) := wall;
+		init(screen[3][1]) := space;
+		init(screen[3][2]) := block;
+		init(screen[3][3]) := space;
+		init(screen[3][4]) := wall;
+		
+		init(screen[4][0]) := wall;
+		init(screen[4][1]) := space;
+		init(screen[4][2]) := space;
+		init(screen[4][3]) := emptygoal;
+		init(screen[4][4]) := wall;
+		
+		init(screen[5][0]) := wall;
+		init(screen[5][1]) := wall;
+		init(screen[5][2]) := wall;
+		init(screen[5][3]) := wall;
+		init(screen[5][4]) := wall;
