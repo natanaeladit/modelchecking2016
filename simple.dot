@@ -1,0 +1,32 @@
+digraph "DD" {
+graph [dpi = 300];
+center = true;
+edge [dir = forward];
+0 [shape=box, label="0", style=filled, shape=box, height=0.3, width=0.3];
+root [style=invis];
+root -> "18" [style=solid dir=both arrowtail=none];
+"18" [label="0"];
+"18" -> "0" [style=dashed];
+"18" -> "17" [style=solid dir=both arrowtail=none];
+"17" [label="1"];
+"17" -> "0" [style=dashed];
+"17" -> "300002" [style=solid dir=both arrowtail=none];
+"300002" [label="2"];
+"300002" -> "0" [style=dashed];
+"300002" -> "16" [style=solid dir=both arrowtail=none];
+"16" [label="3"];
+"16" -> "0" [style=dashed];
+"16" -> "300001" [style=solid dir=both arrowtail=none];
+"300001" [label="4"];
+"300001" -> "0" [style=dashed];
+"300001" -> "7" [style=solid dir=both arrowtail=dot];
+"7" [label="5"];
+"7" -> "0" [style=dashed];
+"7" -> "0" [style=solid dir=both arrowtail=dot];
+{ rank=same; "18"; }
+{ rank=same; "17"; }
+{ rank=same; "300002"; }
+{ rank=same; "16"; }
+{ rank=same; "300001"; }
+{ rank=same; "7"; }
+}
